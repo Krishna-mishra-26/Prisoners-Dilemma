@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prisoner's Dilemma Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><span class="game-icon">🎮</span> Prisoner's Dilemma Game</h1>
+            <p>A Game Theory Demonstration</p>
+        </header>
+
+        <div class="game-controls">
+            <div class="game-mode">
+                <label>Game Mode:</label>
+                <select id="gameMode">
+                    <option value="pvp">Player vs Player</option>
+                    <option value="ai">Player vs AI (Tit-for-Tat)</option>
+                </select>
+            </div>
+            
+            <div class="rounds-selector">
+                <label for="totalRounds">Total Rounds:</label>
+                <select id="totalRounds">
+                    <option value="1">1 Round</option>
+                    <option value="2">2 Rounds</option>
+                    <option value="3">3 Rounds</option>
+                    <option value="4">4 Rounds</option>
+                    <option value="5" selected>5 Rounds</option>
+                    <option value="custom">Custom</option>
+                </select>
+                <input type="number" id="customRounds" min="1" max="100" value="10" style="display:none;">
+            </div>
+            
+            <button id="startGame" class="btn btn-primary">Start New Game</button>
+            <button id="resetGame" class="btn btn-secondary">Reset</button>
+        </div>
+
+        <div class="payoff-matrix">
+            <h3>📊 Payoff Matrix</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th rowspan="2">Player 1</th>
+                        <th colspan="2">Player 2</th>
+                    </tr>
+                    <tr>
+                        <th>Cooperate</th>
+                        <th>Betray</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>Cooperate</th>
+                        <td class="payoff-cell good">(3, 3)</td>
+                        <td class="payoff-cell bad">(0, 5)</td>
+                    </tr>
+                    <tr>
+                        <th>Betray</th>
+                        <td class="payoff-cell bad">(5, 0)</td>
+                        <td class="payoff-cell neutral">(1, 1)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="game-area" id="gameArea" style="display:none;">
+            <div class="round-info">
+                <h3>Round <span id="currentRound">1</span> of <span id="displayTotalRounds">10</span></h3>
+                <p id="gameStatus">Make your choices!</p>
+                <div class="strategic-hint" id="strategicHint">
+                    <div class="hint-icon">💡</div>
+                    <div class="hint-text" id="hintText">In the first round, cooperation often builds trust...</div>
+                </div>
+                <div class="tension-meter">
+                    <div class="tension-label">Tension Level:</div>
+                    <div class="tension-bar">
+                        <div class="tension-fill" id="tensionFill"></div>
+                    </div>
+                    <div class="tension-emoji" id="tensionEmoji">😌</div>
+                </div>
+            </div>
+
+            <div class="players-section">
+                <div class="player player1">
+                    <h3>🔵 Player 1</h3>
+                    <div class="player-mood" id="player1Mood">
+                        <span class="mood-emoji">😐</span>
+                        <span class="mood-text">Neutral</span>
+                    </div>
+                    <div class="strategy-tracker" id="player1Strategy">
+                        <div class="strategy-label">Recent Pattern:</div>
+                        <div class="strategy-icons" id="player1Icons"></div>
+                    </div>
+                    <div class="player-buttons">
+                        <button class="btn btn-cooperate" onclick="makeChoice(1, 'cooperate')" onmouseenter="showChoicePreview(1, 'cooperate')" onmouseleave="hideChoicePreview()">
+                            🤝 Cooperate
+                            <div class="choice-tooltip">Build trust & mutual benefit</div>
+                        </button>
+                        <button class="btn btn-betray" onclick="makeChoice(1, 'betray')" onmouseenter="showChoicePreview(1, 'betray')" onmouseleave="hideChoicePreview()">
+                            ⚔️ Betray
+                            <div class="choice-tooltip">Maximize personal gain</div>
+                        </button>
+                    </div>
+                    <div class="choice-display">
+                        <span class="choice" id="player1Choice">Waiting...</span>
+                    </div>
+                    <div class="timer-display" id="player1Timer"></div>
+                </div>
+
+                <div class="vs-divider">
+                    <div class="vs-text">VS</div>
+                    <div class="battle-effects" id="battleEffects"></div>
+                </div>
+
+                <div class="player player2">
+                    <h3 id="player2Header">🔴 Player 2</h3>
+                    <div class="player-mood" id="player2Mood">
+                        <span class="mood-emoji">😐</span>
+                        <span class="mood-text">Neutral</span>
+                    </div>
+                    <div class="strategy-tracker" id="player2Strategy">
+                        <div class="strategy-label">Recent Pattern:</div>
+                        <div class="strategy-icons" id="player2Icons"></div>
+                    </div>
+                    <div class="player-buttons" id="player2Buttons">
+                        <button class="btn btn-cooperate" onclick="makeChoice(2, 'cooperate')" onmouseenter="showChoicePreview(2, 'cooperate')" onmouseleave="hideChoicePreview()">
+                            🤝 Cooperate
+                            <div class="choice-tooltip">Build trust & mutual benefit</div>
+                        </button>
+                        <button class="btn btn-betray" onclick="makeChoice(2, 'betray')" onmouseenter="showChoicePreview(2, 'betray')" onmouseleave="hideChoicePreview()">
+                            ⚔️ Betray
+                            <div class="choice-tooltip">Maximize personal gain</div>
+                        </button>
+                    </div>
+                    <div class="choice-display">
+                        <span class="choice" id="player2Choice">Waiting...</span>
+                    </div>
+                    <div class="timer-display" id="player2Timer"></div>
+                </div>
+            </div>
+
+            <div class="psychology-panel" id="psychologyPanel">
+                <h4>🧠 Psychology Insight</h4>
+                <p id="psychologyText">Players often start cooperatively but may shift strategies based on outcomes...</p>
+            </div>
+
+            <div class="round-result" id="roundResult" style="display:none;">
+                <h4>Round Results</h4>
+                <div class="result-drama" id="resultDrama">
+                    <div class="drama-text" id="dramaText"></div>
+                    <div class="outcome-effects" id="outcomeEffects"></div>
+                </div>
+                <p id="resultText"></p>
+                <div class="strategy-analysis" id="strategyAnalysis"></div>
+                <button id="nextRound" class="btn btn-primary" onclick="nextRound()">Next Round</button>
+            </div>
+        </div>
+
+        <div class="scoreboard">
+            <h3>📈 Scoreboard</h3>
+            <div class="scores">
+                <div class="score-item">
+                    <span class="score-label">Player 1:</span>
+                    <span class="score-value" id="player1Score">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="score-label" id="player2Label">Player 2:</span>
+                    <span class="score-value" id="player2Score">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="statistics" id="statistics" style="display:none;">
+            <h3>📊 Game Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">Winner:</span>
+                    <span class="stat-value" id="winner">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">P1 Cooperation:</span>
+                    <span class="stat-value" id="p1Cooperation">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">P2 Cooperation:</span>
+                    <span class="stat-value" id="p2Cooperation">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Rounds:</span>
+                    <span class="stat-value" id="totalRoundsPlayed">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <h3>📈 Score Progression</h3>
+            <canvas id="scoreChart"></canvas>
+        </div>
+
+        <div class="rounds-history">
+            <h3>🏛️ Round History</h3>
+            <div class="table-container" id="historyTable">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Round</th>
+                                <th>Player 1</th>
+                                <th>Player 2</th>
+                                <th>P1 Points</th>
+                                <th>P2 Points</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
