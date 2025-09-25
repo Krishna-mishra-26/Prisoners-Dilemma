@@ -6,6 +6,13 @@
     <title>Prisoner's Dilemma Game</title>
     <link rel="stylesheet" href="GT Prisoner's Dilemma/styles.css">
     <script src="GT Prisoner's Dilemma/game.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script>
+        // Fallback CDN if primary fails
+        if (typeof Chart === 'undefined') {
+            document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js"><\/script>');
+        }
+    </script>
 
 </head>
 <body>
@@ -229,3 +236,4 @@
 </body>
 
 </html>
+
