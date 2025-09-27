@@ -74,6 +74,30 @@
             </table>
         </div>
 
+        <!-- Scenario Context Section -->
+        <div class="scenario-section" id="scenarioSection" style="display: none;">
+            <div class="scenario-card">
+                <div class="scenario-header">
+                    <h3 id="scenarioTitle">🎭 Current Scenario</h3>
+                </div>
+                <div class="scenario-content">
+                    <div class="scenario-description" id="scenarioDescription">
+                        Two business partners must decide whether to share crucial market information...
+                    </div>
+                    <div class="scenario-stakes" id="scenarioStakes">
+                        <strong>Stakes:</strong> <span id="stakesText">Your partnership's future depends on trust</span>
+                    </div>
+                    <div class="relationship-status" id="relationshipStatus">
+                        <span class="relationship-label">Current Relationship:</span>
+                        <span class="relationship-meter">
+                            <div class="relationship-bar" id="relationshipBar"></div>
+                            <span class="relationship-text" id="relationshipText">Neutral</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="game-area" id="gameArea" style="display:none;">
             <div class="round-info">
                 <h3>Round <span id="currentRound">1</span> of <span id="displayTotalRounds">10</span></h3>
@@ -104,12 +128,14 @@
                     </div>
                     <div class="player-buttons">
                         <button class="btn btn-cooperate" onclick="makeChoice(1, 'cooperate')" onmouseenter="showChoicePreview(1, 'cooperate')" onmouseleave="hideChoicePreview()">
-                            🤝 Cooperate
-                            <div class="choice-tooltip">Build trust & mutual benefit</div>
+                            <span class="button-icon">🤝</span>
+                            <span class="button-text" id="player1CooperateText">Cooperate</span>
+                            <div class="choice-tooltip" id="player1CooperateTooltip">Build trust & mutual benefit</div>
                         </button>
                         <button class="btn btn-betray" onclick="makeChoice(1, 'betray')" onmouseenter="showChoicePreview(1, 'betray')" onmouseleave="hideChoicePreview()">
-                            ⚔️ Betray
-                            <div class="choice-tooltip">Maximize personal gain</div>
+                            <span class="button-icon">⚔️</span>
+                            <span class="button-text" id="player1BetrayText">Betray</span>
+                            <div class="choice-tooltip" id="player1BetrayTooltip">Maximize personal gain</div>
                         </button>
                     </div>
                     <div class="choice-display">
@@ -135,12 +161,14 @@
                     </div>
                     <div class="player-buttons" id="player2Buttons">
                         <button class="btn btn-cooperate" onclick="makeChoice(2, 'cooperate')" onmouseenter="showChoicePreview(2, 'cooperate')" onmouseleave="hideChoicePreview()">
-                            🤝 Cooperate
-                            <div class="choice-tooltip">Build trust & mutual benefit</div>
+                            <span class="button-icon">🤝</span>
+                            <span class="button-text" id="player2CooperateText">Cooperate</span>
+                            <div class="choice-tooltip" id="player2CooperateTooltip">Build trust & mutual benefit</div>
                         </button>
                         <button class="btn btn-betray" onclick="makeChoice(2, 'betray')" onmouseenter="showChoicePreview(2, 'betray')" onmouseleave="hideChoicePreview()">
-                            ⚔️ Betray
-                            <div class="choice-tooltip">Maximize personal gain</div>
+                            <span class="button-icon">⚔️</span>
+                            <span class="button-text" id="player2BetrayText">Betray</span>
+                            <div class="choice-tooltip" id="player2BetrayTooltip">Maximize personal gain</div>
                         </button>
                     </div>
                     <div class="choice-display">
@@ -166,8 +194,10 @@
                 <button id="nextRound" class="btn btn-primary" onclick="nextRound()">Next Round</button>
             </div>
         </div>
+            </div>
+        </div>
 
-        <div class="scoreboard">
+        <div class="scoreboard" id="scoreboard" style="display:none;">
             <h3>📈 Scoreboard</h3>
             <div class="scores">
                 <div class="score-item">
@@ -203,12 +233,12 @@
             </div>
         </div>
 
-        <div class="chart-container" id="chartSection">
+        <div class="chart-container" id="chartSection" style="display:none;">
             <h3>📈 Score Progression</h3>
             <canvas id="scoreChart"></canvas>
         </div>
 
-        <div class="rounds-history">
+        <div class="rounds-history" id="roundsHistory" style="display:none;">
             <h3>🏛️ Round History</h3>
             <div class="table-container" id="historyTable">
                 <div class="table-scroll">
@@ -234,3 +264,4 @@
 
 </body>
 </html>
+
