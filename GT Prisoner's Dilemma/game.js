@@ -48,10 +48,80 @@ const psychologyTexts = [
 // Drama texts for different outcomes
 const dramaTexts = {
     'cooperate-cooperate': ["🤝 Perfect Harmony!", "✨ Trust Prevails!", "🌟 Mutual Success!"],
-    'cooperate-betray': ["💔 Betrayal Strikes!", "😱 Trust Broken!", "⚡ Ambush!"],
-    'betray-cooperate': ["🗡️ Successful Ambush!", "💰 Opportunist Wins!", "😈 Ruthless Move!"],
-    'betray-betray': ["⚔️ Mutual Destruction!", "💥 Nobody Wins!", "🔥 All-Out War!"]
+    'cooperate-betray': ["💔 Trust Betrayed!", "😢 The Sucker's Payoff!", "💸 Exploited!"],
+    'betray-cooperate': ["💰 Opportunistic Strike!", "👑 Exploitation Success!", "⚡ Taking Advantage!"],
+    'betray-betray': ["💥 Mutual Destruction!", "🔥 Trust Breakdown!", "⚔️ War of All!"]
 };
+
+// Scenario-based contexts for decision making
+const gameScenarios = [
+    {
+        title: "🤝 Business Partnership",
+        description: "You and your business partner must decide whether to share crucial market intelligence that could benefit both companies or keep it secret for competitive advantage.",
+        stakes: "Your partnership's future and market position depend on trust",
+        cooperateAction: "Share Information",
+        betrayAction: "Keep Secret", 
+        cooperateTooltip: "Build partnership trust and mutual success",
+        betrayTooltip: "Gain competitive advantage but risk partnership"
+    },
+    {
+        title: "🏠 Roommate Dilemma", 
+        description: "You and your roommate need to decide whether to contribute to expensive apartment maintenance or let the other person handle (and pay for) it.",
+        stakes: "Living conditions and friendship are at stake",
+        cooperateAction: "Pay Share",
+        betrayAction: "Skip Payment",
+        cooperateTooltip: "Maintain apartment and friendship", 
+        betrayTooltip: "Save money but burden roommate"
+    },
+    {
+        title: "🚗 Traffic Merge",
+        description: "At a busy intersection, you and another driver must decide whether to yield and take turns or aggressively try to go first.",
+        stakes: "Traffic flow and road safety depend on cooperation",
+        cooperateAction: "Yield Turn",
+        betrayAction: "Cut In Line",
+        cooperateTooltip: "Keep traffic flowing smoothly",
+        betrayTooltip: "Get ahead but create traffic jam"
+    },
+    {
+        title: "📚 Study Group",
+        description: "Before an important exam, you and your study partner must decide whether to share your best notes and preparation materials.",
+        stakes: "Your grades and academic reputation are on the line",
+        cooperateAction: "Share Notes", 
+        betrayAction: "Keep Private",
+        cooperateTooltip: "Help each other succeed",
+        betrayTooltip: "Maintain grade advantage"
+    },
+    {
+        title: "💼 Team Project",
+        description: "You and a colleague must decide how much effort to put into a shared project that will affect both your performance reviews.",
+        stakes: "Career advancement and team reputation depend on collaboration",
+        cooperateAction: "Work Hard",
+        betrayAction: "Slack Off",
+        cooperateTooltip: "Ensure project success for both",
+        betrayTooltip: "Let partner do the work"
+    },
+    {
+        title: "🌍 Environmental Choice",
+        description: "You and your neighbor must decide whether to invest in expensive eco-friendly upgrades that benefit the whole community.",
+        stakes: "Environmental impact and community leadership are at stake",
+        cooperateAction: "Go Green",
+        betrayAction: "Stay Cheap", 
+        cooperateTooltip: "Lead environmental change together",
+        betrayTooltip: "Save money, let others pay for change"
+    },
+    {
+        title: "🎮 Gaming Alliance",
+        description: "In an online game, you and another player must decide whether to share rare resources or hoard them for personal advantage.",
+        stakes: "Your gaming reputation and alliance strength depend on trust",
+        cooperateAction: "Share Resources",
+        betrayAction: "Hoard Items",
+        cooperateTooltip: "Strengthen alliance for long-term success",
+        betrayTooltip: "Maximize personal gaming advantage"
+    }
+];
+
+// Relationship status tracking
+let relationshipLevel = 50; // 0-100, starts neutral
 
 // Mood system
 const moods = {
@@ -199,6 +269,9 @@ function startNewGame() {
     gameState.player1Mood = 'neutral';
     gameState.player2Mood = 'neutral';
     
+    // Reset relationship level
+    relationshipLevel = 50;
+    
     // Get total rounds
     const roundsSelect = document.getElementById('totalRounds');
     if (roundsSelect.value === 'custom') {
@@ -207,12 +280,21 @@ function startNewGame() {
         gameState.totalRounds = parseInt(roundsSelect.value);
     }
     
+    // Show scenario section and set up first scenario
+    document.getElementById('scenarioSection').style.display = 'block';
+    loadNewScenario();
+    
     // Update UI with animations
     const gameArea = document.getElementById('gameArea');
     gameArea.style.display = 'block';
     gameArea.classList.add('fade-in');
     
+    // Show game-related sections
+    document.getElementById('scoreboard').style.display = 'block';
+    document.getElementById('chartSection').style.display = 'block';
+    document.getElementById('roundsHistory').style.display = 'block';
     document.getElementById('statistics').style.display = 'none';
+    
     document.getElementById('currentRound').textContent = gameState.currentRound;
     document.getElementById('displayTotalRounds').textContent = gameState.totalRounds;
     
@@ -403,6 +485,9 @@ function processRound() {
     updateMoodsBasedOnOutcome(gameState.player1Choice, gameState.player2Choice, player1Points, player2Points);
     updatePlayerMoods();
     
+    // Update relationship level based on choices
+    updateRelationshipLevel(gameState.player1Choice, gameState.player2Choice);
+    
     // Store round history
     gameState.gameHistory.push({
         round: gameState.currentRound,
@@ -520,6 +605,9 @@ function nextRound() {
     gameState.player1Choice = null;
     gameState.player2Choice = null;
     
+    // Load new scenario for the new round
+    loadNewScenario();
+    
     // Update UI
     document.getElementById('currentRound').textContent = gameState.currentRound;
     updateGameStatus();
@@ -535,7 +623,7 @@ function nextRound() {
     
     // Add some dramatic pause for next round
     setTimeout(() => {
-        document.getElementById('gameStatus').textContent = "New round begins - tension rises...";
+        document.getElementById('gameStatus').textContent = getContextualGameStatus();
     }, 1000);
 }
 
@@ -953,19 +1041,9 @@ function updateGameStatus() {
     const gameStatusElement = document.getElementById('gameStatus');
     if (!gameStatusElement) return;
     
-    const statusMessages = [
-        "The tension builds as players contemplate their moves...",
-        "Trust or betray? The eternal dilemma unfolds...",
-        "Strategic minds at work - what will they choose?",
-        "The psychological battle begins...",
-        "Cooperation or competition? You decide!",
-        "Every choice shapes the future of this relationship...",
-        "The shadow of future rounds influences current decisions...",
-        "Will rationality or emotion guide these choices?"
-    ];
-    
-    const randomMessage = statusMessages[Math.floor(Math.random() * statusMessages.length)];
-    gameStatusElement.textContent = randomMessage;
+    // Use contextual status messages instead of generic ones
+    const contextualMessage = getContextualGameStatus();
+    gameStatusElement.textContent = contextualMessage;
 }
 
 function updateStrategicHint() {
@@ -1147,6 +1225,93 @@ function formatChoice(choice) {
     return choice === 'cooperate' ? '🤝 Cooperate' : '⚔️ Betray';
 }
 
+// Scenario Management Functions
+function loadNewScenario() {
+    const scenario = gameScenarios[Math.floor(Math.random() * gameScenarios.length)];
+    
+    // Update scenario display
+    document.getElementById('scenarioTitle').textContent = scenario.title;
+    document.getElementById('scenarioDescription').textContent = scenario.description;
+    document.getElementById('stakesText').textContent = scenario.stakes;
+    
+    // Update button texts for both players
+    updateButtonTexts(scenario);
+    
+    // Update relationship status
+    updateRelationshipDisplay();
+}
+
+function updateButtonTexts(scenario) {
+    // Player 1 buttons
+    document.getElementById('player1CooperateText').textContent = scenario.cooperateAction;
+    document.getElementById('player1BetrayText').textContent = scenario.betrayAction;
+    document.getElementById('player1CooperateTooltip').textContent = scenario.cooperateTooltip;
+    document.getElementById('player1BetrayTooltip').textContent = scenario.betrayTooltip;
+    
+    // Player 2 buttons (if in PvP mode)
+    if (gameState.mode === 'pvp') {
+        document.getElementById('player2CooperateText').textContent = scenario.cooperateAction;
+        document.getElementById('player2BetrayText').textContent = scenario.betrayAction;
+        document.getElementById('player2CooperateTooltip').textContent = scenario.cooperateTooltip;
+        document.getElementById('player2BetrayTooltip').textContent = scenario.betrayTooltip;
+    }
+}
+
+function updateRelationshipDisplay() {
+    const relationshipBar = document.getElementById('relationshipBar');
+    const relationshipText = document.getElementById('relationshipText');
+    
+    // Update relationship bar width
+    if (relationshipBar) {
+        relationshipBar.style.width = relationshipLevel + '%';
+    }
+    
+    // Update relationship text
+    let relationshipStatus;
+    if (relationshipLevel >= 80) {
+        relationshipStatus = 'Strong Trust';
+    } else if (relationshipLevel >= 60) {
+        relationshipStatus = 'Good Relations';
+    } else if (relationshipLevel >= 40) {
+        relationshipStatus = 'Neutral';
+    } else if (relationshipLevel >= 20) {
+        relationshipStatus = 'Strained';
+    } else {
+        relationshipStatus = 'Hostile';
+    }
+    
+    if (relationshipText) {
+        relationshipText.textContent = relationshipStatus;
+    }
+}
+
+function updateRelationshipLevel(p1Choice, p2Choice) {
+    if (p1Choice === 'cooperate' && p2Choice === 'cooperate') {
+        relationshipLevel = Math.min(100, relationshipLevel + 8); // Both cooperate: +8
+    } else if (p1Choice === 'betray' && p2Choice === 'betray') {
+        relationshipLevel = Math.max(0, relationshipLevel - 12); // Both betray: -12
+    } else {
+        relationshipLevel = Math.max(0, relationshipLevel - 5); // Mixed: -5
+    }
+    
+    updateRelationshipDisplay();
+}
+
+function getContextualGameStatus() {
+    const contextualMessages = [
+        "Consider the consequences of your choice...",
+        "What would you do in this real-world situation?",
+        "Trust and reputation are built over time...", 
+        "Short-term gain vs. long-term relationships...",
+        "Your decision affects future interactions...",
+        "Think about the other person's perspective...",
+        "Cooperation often leads to better outcomes for all...",
+        "But sometimes you need to protect your own interests..."
+    ];
+    
+    return contextualMessages[Math.floor(Math.random() * contextualMessages.length)];
+}
+
 // Export functions for testing (if needed)
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -1155,6 +1320,8 @@ if (typeof module !== 'undefined' && module.exports) {
         makeChoice,
         processRound,
         startNewGame,
-        resetGame
+        resetGame,
+        loadNewScenario,
+        updateRelationshipLevel
     };
 }
